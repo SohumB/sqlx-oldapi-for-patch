@@ -1,5 +1,5 @@
-use sqlx_oldapi::any::AnyRow;
-use sqlx_oldapi::{Any, Connection, Decode, Executor, Row, Type};
+use sqlx::any::AnyRow;
+use sqlx::{Any, Connection, Decode, Executor, Row, Type};
 use sqlx_test::new;
 
 async fn get_val<T>(expr: &str) -> anyhow::Result<T>
@@ -7,7 +7,7 @@ where
     for<'r> T: Decode<'r, Any> + Type<Any> + std::marker::Unpin + std::marker::Send + 'static,
 {
     let mut conn = new::<Any>().await?;
-    let val = sqlx_oldapi::query(&format!("select {}", expr))
+    let val = sqlx::query(&format!("select {}", expr))
         .try_map(|row: AnyRow| row.try_get::<T, _>(0))
         .fetch_one(&mut conn)
         .await?;
@@ -40,7 +40,7 @@ async fn it_has_all_the_types() -> anyhow::Result<()> {
 #[cfg(feature = "chrono")]
 #[sqlx_macros::test]
 async fn it_has_chrono() -> anyhow::Result<()> {
-    use sqlx_oldapi::types::chrono::NaiveDate;
+    use sqlx::types::chrono::NaiveDate;
     assert_eq!(
         NaiveDate::from_ymd_opt(2020, 1, 2).unwrap(),
         get_val::<NaiveDate>("CAST('20200102' AS DATE)").await?
@@ -51,7 +51,7 @@ async fn it_has_chrono() -> anyhow::Result<()> {
 #[cfg(feature = "bigdecimal")]
 #[sqlx_macros::test]
 async fn it_has_bigdecimal() -> anyhow::Result<()> {
-    use sqlx_oldapi::types::BigDecimal;
+    use sqlx::types::BigDecimal;
     use std::str::FromStr;
     assert_eq!(
         BigDecimal::from_str("1234567.25")?,
@@ -63,7 +63,7 @@ async fn it_has_bigdecimal() -> anyhow::Result<()> {
 #[cfg(feature = "decimal")]
 #[sqlx_macros::test]
 async fn it_has_decimal() -> anyhow::Result<()> {
-    use sqlx_oldapi::types::Decimal;
+    use sqlx::types::Decimal;
     use std::str::FromStr;
     assert_eq!(
         Decimal::from_str("1234567.25")?,
@@ -119,18 +119,18 @@ async fn it_does_not_stop_stream_after_decoding_error() -> anyhow::Result<()> {
 
     #[derive(Debug, PartialEq)]
     struct MyType;
-    impl<'a> sqlx_oldapi::FromRow<'a, AnyRow> for MyType {
-        fn from_row(row: &'a AnyRow) -> sqlx_oldapi::Result<Self> {
+    impl<'a> sqlx::FromRow<'a, AnyRow> for MyType {
+        fn from_row(row: &'a AnyRow) -> sqlx::Result<Self> {
             let n = row.try_get::<i32, _>(0)?;
             if n == 1 {
-                Err(sqlx_oldapi::Error::RowNotFound)
+                Err(sqlx::Error::RowNotFound)
             } else {
                 Ok(MyType)
             }
         }
     }
 
-    let rows = sqlx_oldapi::query_as("SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2")
+    let rows = sqlx::query_as("SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2")
         .fetch(&pool)
         .map(|r| r.ok())
         .collect::<Vec<_>>()

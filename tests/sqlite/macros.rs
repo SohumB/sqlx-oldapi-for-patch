@@ -1,12 +1,12 @@
-use sqlx_oldapi as sqlx;
-use sqlx_oldapi::Sqlite;
+use sqlx as sqlx;
+use sqlx::Sqlite;
 use sqlx_test::new;
 
 #[sqlx_macros::test]
 async fn macro_select() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let account = sqlx_oldapi::query!("select id, name, is_active from accounts where id = 1")
+    let account = sqlx::query!("select id, name, is_active from accounts where id = 1")
         .fetch_one(&mut conn)
         .await?;
 
@@ -23,7 +23,7 @@ macro_rules! gen_macro_select_concats {
         async fn macro_select_concat_single() -> anyhow::Result<()> {
             let mut conn = new::<Sqlite>().await?;
 
-            let account = sqlx_oldapi::query!("select " + $param + " from accounts where id = 1")
+            let account = sqlx::query!("select " + $param + " from accounts where id = 1")
                 .fetch_one(&mut conn)
                 .await?;
 
@@ -42,7 +42,7 @@ gen_macro_select_concats!("id, name, is_active");
 async fn macro_select_expression() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let row = sqlx_oldapi::query!("select 10 as _1, 'Hello' as _2")
+    let row = sqlx::query!("select 10 as _1, 'Hello' as _2")
         .fetch_one(&mut conn)
         .await?;
 
@@ -56,7 +56,7 @@ async fn macro_select_expression() -> anyhow::Result<()> {
 async fn macro_select_partial_expression() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let row = sqlx_oldapi::query!(
+    let row = sqlx::query!(
         "select 10 as _1, 'Hello' as _2, is_active, name, id + 5 as id_p from accounts where id = 1"
     )
     .fetch_one(&mut conn)
@@ -75,7 +75,7 @@ async fn macro_select_partial_expression() -> anyhow::Result<()> {
 async fn macro_select_bind() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let account = sqlx_oldapi::query!(
+    let account = sqlx::query!(
         "select id, name, is_active from accounts where id = ?",
         1i32
     )
@@ -100,7 +100,7 @@ struct RawAccount {
 async fn test_query_as_raw() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let account = sqlx_oldapi::query_as!(RawAccount, "SELECT id, name, is_active from accounts")
+    let account = sqlx::query_as!(RawAccount, "SELECT id, name, is_active from accounts")
         .fetch_one(&mut conn)
         .await?;
 
@@ -115,53 +115,53 @@ async fn test_query_as_raw() -> anyhow::Result<()> {
 async fn test_query_scalar() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let id = sqlx_oldapi::query_scalar!("select 1")
+    let id = sqlx::query_scalar!("select 1")
         .fetch_one(&mut conn)
         .await?;
     assert_eq!(id, 1i32);
 
     // invalid column names are ignored
-    let id = sqlx_oldapi::query_scalar!(r#"select 1 as "&foo""#)
+    let id = sqlx::query_scalar!(r#"select 1 as "&foo""#)
         .fetch_one(&mut conn)
         .await?;
     assert_eq!(id, 1i32);
 
-    let id = sqlx_oldapi::query_scalar!(r#"select 1 as "foo!""#)
+    let id = sqlx::query_scalar!(r#"select 1 as "foo!""#)
         .fetch_one(&mut conn)
         .await?;
     assert_eq!(id, 1i32);
 
-    let id = sqlx_oldapi::query_scalar!(r#"select 1 as "foo?""#)
+    let id = sqlx::query_scalar!(r#"select 1 as "foo?""#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(id, Some(1i32));
 
-    let id = sqlx_oldapi::query_scalar!(r#"select 1 as "foo: MyInt""#)
+    let id = sqlx::query_scalar!(r#"select 1 as "foo: MyInt""#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(id, MyInt(1i64));
 
-    let id = sqlx_oldapi::query_scalar!(r#"select 1 as "foo?: MyInt""#)
+    let id = sqlx::query_scalar!(r#"select 1 as "foo?: MyInt""#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(id, Some(MyInt(1i64)));
 
-    let id = sqlx_oldapi::query_scalar!(r#"select 1 as "foo!: MyInt""#)
+    let id = sqlx::query_scalar!(r#"select 1 as "foo!: MyInt""#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(id, MyInt(1i64));
 
-    let id: MyInt = sqlx_oldapi::query_scalar!(r#"select 1 as "foo: _""#)
+    let id: MyInt = sqlx::query_scalar!(r#"select 1 as "foo: _""#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(id, MyInt(1i64));
 
-    let id: MyInt = sqlx_oldapi::query_scalar!(r#"select 1 as "foo?: _""#)
+    let id: MyInt = sqlx::query_scalar!(r#"select 1 as "foo?: _""#)
         .fetch_one(&mut conn)
         .await?
         // don't hint that it should be `Option<MyInt>`
@@ -169,7 +169,7 @@ async fn test_query_scalar() -> anyhow::Result<()> {
 
     assert_eq!(id, MyInt(1i64));
 
-    let id: MyInt = sqlx_oldapi::query_scalar!(r#"select 1 as "foo!: _""#)
+    let id: MyInt = sqlx::query_scalar!(r#"select 1 as "foo!: _""#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -182,7 +182,7 @@ async fn test_query_scalar() -> anyhow::Result<()> {
 async fn macro_select_from_view() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let account = sqlx_oldapi::query!("SELECT id, name, is_active from accounts_view")
+    let account = sqlx::query!("SELECT id, name, is_active from accounts_view")
         .fetch_one(&mut conn)
         .await?;
 
@@ -198,7 +198,7 @@ async fn macro_select_from_view() -> anyhow::Result<()> {
 async fn test_column_override_not_null() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query!(r#"select owner_id as `owner_id!` from tweet"#)
+    let record = sqlx::query!(r#"select owner_id as `owner_id!` from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -211,7 +211,7 @@ async fn test_column_override_not_null() -> anyhow::Result<()> {
 async fn test_column_override_nullable() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query!(r#"select text as `text?` from tweet"#)
+    let record = sqlx::query!(r#"select text as `text?` from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -220,7 +220,7 @@ async fn test_column_override_nullable() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(PartialEq, Eq, Debug, sqlx_oldapi::Type)]
+#[derive(PartialEq, Eq, Debug, sqlx::Type)]
 #[sqlx(transparent)]
 struct MyInt(i64);
 
@@ -236,20 +236,20 @@ struct OptionalRecord {
 async fn test_column_override_wildcard() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query_as!(Record, r#"select id as "id: _" from tweet"#)
+    let record = sqlx::query_as!(Record, r#"select id as "id: _" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(record.id, MyInt(1));
 
     // this syntax is also useful for expressions
-    let record = sqlx_oldapi::query_as!(Record, r#"select 1 as "id: _""#)
+    let record = sqlx::query_as!(Record, r#"select 1 as "id: _""#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(record.id, MyInt(1));
 
-    let record = sqlx_oldapi::query_as!(OptionalRecord, r#"select owner_id as "id: _" from tweet"#)
+    let record = sqlx::query_as!(OptionalRecord, r#"select owner_id as "id: _" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -262,7 +262,7 @@ async fn test_column_override_wildcard() -> anyhow::Result<()> {
 async fn test_column_override_wildcard_not_null() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query_as!(Record, r#"select owner_id as "id!: _" from tweet"#)
+    let record = sqlx::query_as!(Record, r#"select owner_id as "id!: _" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -275,7 +275,7 @@ async fn test_column_override_wildcard_not_null() -> anyhow::Result<()> {
 async fn test_column_override_wildcard_nullable() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query_as!(OptionalRecord, r#"select id as "id?: _" from tweet"#)
+    let record = sqlx::query_as!(OptionalRecord, r#"select id as "id?: _" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -288,20 +288,20 @@ async fn test_column_override_wildcard_nullable() -> anyhow::Result<()> {
 async fn test_column_override_exact() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query!(r#"select id as "id: MyInt" from tweet"#)
+    let record = sqlx::query!(r#"select id as "id: MyInt" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(record.id, MyInt(1));
 
     // we can also support this syntax for expressions
-    let record = sqlx_oldapi::query!(r#"select 1 as "id: MyInt""#)
+    let record = sqlx::query!(r#"select 1 as "id: MyInt""#)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(record.id, MyInt(1));
 
-    let record = sqlx_oldapi::query!(r#"select owner_id as "id: MyInt" from tweet"#)
+    let record = sqlx::query!(r#"select owner_id as "id: MyInt" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -314,7 +314,7 @@ async fn test_column_override_exact() -> anyhow::Result<()> {
 async fn test_column_override_exact_not_null() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query!(r#"select owner_id as "id!: MyInt" from tweet"#)
+    let record = sqlx::query!(r#"select owner_id as "id!: MyInt" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 
@@ -327,7 +327,7 @@ async fn test_column_override_exact_not_null() -> anyhow::Result<()> {
 async fn test_column_override_exact_nullable() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let record = sqlx_oldapi::query!(r#"select id as "id?: MyInt" from tweet"#)
+    let record = sqlx::query!(r#"select id as "id?: MyInt" from tweet"#)
         .fetch_one(&mut conn)
         .await?;
 

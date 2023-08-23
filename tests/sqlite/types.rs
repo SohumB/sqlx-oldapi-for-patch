@@ -1,7 +1,7 @@
 extern crate time_ as time;
 
 use sqlx_core::row::Row;
-use sqlx_oldapi::sqlite::{Sqlite, SqliteRow};
+use sqlx::sqlite::{Sqlite, SqliteRow};
 use sqlx_test::new;
 use sqlx_test::test_type;
 
@@ -40,7 +40,7 @@ test_type!(bytes<Vec<u8>>(Sqlite,
 mod json_tests {
     use super::*;
     use serde_json::{json, Value as JsonValue};
-    use sqlx_oldapi::types::Json;
+    use sqlx::types::Json;
     use sqlx_test::test_type;
 
     test_type!(json<JsonValue>(
@@ -80,7 +80,7 @@ mod json_tests {
         let mut conn = new::<Sqlite>().await?;
 
         let value =
-            sqlx_oldapi::query("select JSON_EXTRACT(JSON('{ \"number\": 42 }'), '$.number') = ?1")
+            sqlx::query("select JSON_EXTRACT(JSON('{ \"number\": 42 }'), '$.number') = ?1")
                 .bind(42_i32)
                 .try_map(|row: SqliteRow| row.try_get::<bool, _>(0))
                 .fetch_one(&mut conn)
@@ -95,7 +95,7 @@ mod json_tests {
 #[cfg(feature = "chrono")]
 mod chrono {
     use super::*;
-    use sqlx_oldapi::types::chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, Utc};
+    use sqlx::types::chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, Utc};
 
     test_type!(chrono_naive_date_time<NaiveDateTime>(Sqlite, "SELECT datetime({0}) is datetime(?), {0}, ?",
         "'2019-01-02 05:10:20'" == NaiveDate::from_ymd_opt(2019, 1, 2).unwrap().and_hms_opt(5, 10, 20).unwrap()
@@ -113,7 +113,7 @@ mod chrono {
 #[cfg(feature = "time")]
 mod time_tests {
     use super::*;
-    use sqlx_oldapi::types::time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
+    use sqlx::types::time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
     use time::macros::{date, datetime, time};
 
     test_type!(time_offset_date_time<OffsetDateTime>(
@@ -161,7 +161,7 @@ mod time_tests {
 #[cfg(feature = "bstr")]
 mod bstr {
     use super::*;
-    use sqlx_oldapi::types::bstr::BString;
+    use sqlx::types::bstr::BString;
 
     test_type!(bstring<BString>(Sqlite,
         "cast('abc123' as blob)" == BString::from(&b"abc123"[..]),
@@ -172,7 +172,7 @@ mod bstr {
 #[cfg(feature = "git2")]
 mod git2 {
     use super::*;
-    use sqlx_oldapi::types::git2::Oid;
+    use sqlx::types::git2::Oid;
 
     test_type!(oid<Oid>(
         Sqlite,
@@ -183,17 +183,17 @@ mod git2 {
 }
 
 #[cfg(feature = "uuid")]
-test_type!(uuid<sqlx_oldapi::types::Uuid>(Sqlite,
+test_type!(uuid<sqlx::types::Uuid>(Sqlite,
     "x'b731678f636f4135bc6f19440c13bd19'"
-        == sqlx_oldapi::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap(),
+        == sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap(),
     "x'00000000000000000000000000000000'"
-        == sqlx_oldapi::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap()
+        == sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap()
 ));
 
 #[cfg(feature = "uuid")]
-test_type!(uuid_hyphenated<sqlx_oldapi::types::uuid::fmt::Hyphenated>(Sqlite,
+test_type!(uuid_hyphenated<sqlx::types::uuid::fmt::Hyphenated>(Sqlite,
     "'b731678f-636f-4135-bc6f-19440c13bd19'"
-        == sqlx_oldapi::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap().hyphenated(),
+        == sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap().hyphenated(),
     "'00000000-0000-0000-0000-000000000000'"
-        == sqlx_oldapi::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap().hyphenated()
+        == sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap().hyphenated()
 ));

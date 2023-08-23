@@ -1,4 +1,4 @@
-use sqlx_oldapi::mssql::Mssql;
+use sqlx::mssql::Mssql;
 use sqlx_test::test_type;
 
 test_type!(str<String>(Mssql,
@@ -93,7 +93,7 @@ test_type!(null_varbinary<Option<Vec<u8>>>(Mssql,
 mod chrono {
     use super::*;
     use sqlx_core::types::chrono::{FixedOffset, NaiveTime, Utc};
-    use sqlx_oldapi::types::chrono::{DateTime, NaiveDate, NaiveDateTime};
+    use sqlx::types::chrono::{DateTime, NaiveDate, NaiveDateTime};
 
     test_type!(smalldatetime_type<DateTime<Utc>>(
         Mssql,
@@ -149,7 +149,7 @@ mod chrono {
 #[cfg(feature = "decimal")]
 mod decimal {
     use super::*;
-    use sqlx_oldapi::types::Decimal;
+    use sqlx::types::Decimal;
 
     test_type!(Decimal(
         Mssql,
@@ -168,7 +168,7 @@ mod decimal {
 #[cfg(feature = "bigdecimal")]
 mod bigdecimal {
     use super::*;
-    use sqlx_oldapi::types::BigDecimal;
+    use sqlx::types::BigDecimal;
     use std::str::FromStr;
 
     test_type!(BigDecimal(

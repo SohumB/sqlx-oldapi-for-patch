@@ -25,18 +25,18 @@
   <!-- Github Actions -->
   <img src="https://img.shields.io/github/actions/workflow/status/lovasoa/sqlx/sqlx.yml?branch=main" alt="actions status" />
   <!-- Version -->
-  <a href="https://crates.io/crates/sqlx-oldapi">
-    <img src="https://img.shields.io/crates/v/sqlx-oldapi.svg?style=flat-square"
+  <a href="https://crates.io/crates/sqlx">
+    <img src="https://img.shields.io/crates/v/sqlx.svg?style=flat-square"
     alt="Crates.io version" />
   </a>
   <!-- Docs -->
-  <a href="https://docs.rs/sqlx-oldapi">
+  <a href="https://docs.rs/sqlx">
     <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square"
       alt="docs.rs docs" />
   </a>
   <!-- Downloads -->
-  <a href="https://crates.io/crates/sqlx-oldapi">
-    <img src="https://img.shields.io/crates/d/sqlx-oldapi.svg?style=flat-square"
+  <a href="https://crates.io/crates/sqlx">
+    <img src="https://img.shields.io/crates/d/sqlx.svg?style=flat-square"
       alt="Download" />
   </a>
 </div>
@@ -51,7 +51,7 @@
       Usage
     </a>
     <span> | </span>
-    <a href="https://docs.rs/sqlx-oldapi">
+    <a href="https://docs.rs/sqlx">
       Docs
     </a>
   </h4>
@@ -128,9 +128,9 @@ SQLx is compatible with the [`async-std`], [`tokio`] and [`actix`] runtimes; and
 # Cargo.toml
 [dependencies]
 # tokio + rustls
-sqlx = { package = "sqlx-oldapi",  version = "0.6", features = [ "runtime-tokio-rustls" ] }
+sqlx = { package = "sqlx",  version = "0.6", features = [ "runtime-tokio-rustls" ] }
 # async-std + native-tls
-sqlx = { package = "sqlx-oldapi",  version = "0.6", features = [ "runtime-async-std-native-tls" ] }
+sqlx = { package = "sqlx",  version = "0.6", features = [ "runtime-async-std-native-tls" ] }
 ```
 
 <small><small>The runtime and TLS backend not being separate feature sets to select is a workaround for a [Cargo issue](https://github.com/rust-lang/cargo/issues/3494).</small></small>
@@ -216,15 +216,15 @@ See the `examples/` folder for more in-depth usage.
 [dependencies]
 # PICK ONE:
 # Async-std:
-sqlx = { package = "sqlx-oldapi",  version = "0.6", features = [  "runtime-async-std-native-tls", "postgres" ] }
+sqlx = { package = "sqlx",  version = "0.6", features = [  "runtime-async-std-native-tls", "postgres" ] }
 async-std = { version = "1", features = [ "attributes" ] }
 
 # Tokio:
-sqlx = { package = "sqlx-oldapi",  version = "0.6", features = [ "runtime-tokio-native-tls" , "postgres" ] }
+sqlx = { package = "sqlx",  version = "0.6", features = [ "runtime-tokio-native-tls" , "postgres" ] }
 tokio = { version = "1", features = ["full"] }
 
 # Actix-web:
-sqlx = { package = "sqlx-oldapi",  version = "0.6", features = [ "runtime-actix-native-tls" , "postgres" ] }
+sqlx = { package = "sqlx",  version = "0.6", features = [ "runtime-actix-native-tls" , "postgres" ] }
 actix-web = "4"
 ```
 

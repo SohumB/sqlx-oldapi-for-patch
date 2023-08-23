@@ -1,8 +1,8 @@
 use futures::TryStreamExt;
 use rand::{Rng, SeedableRng};
 use rand_xoshiro::Xoshiro256PlusPlus;
-use sqlx_oldapi::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
-use sqlx_oldapi::{
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use sqlx::{
     query, sqlite::Sqlite, sqlite::SqliteRow, Column, ConnectOptions, Connection, Executor, Row,
     SqliteConnection, SqlitePool, Statement, TypeInfo,
 };
@@ -83,7 +83,7 @@ async fn it_fetches_and_inflates_row() -> anyhow::Result<()> {
 async fn it_maths() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let value = sqlx_oldapi::query("select 1 + ?1")
+    let value = sqlx::query("select 1 + ?1")
         .bind(5_i32)
         .try_map(|row: SqliteRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
@@ -98,7 +98,7 @@ async fn it_maths() -> anyhow::Result<()> {
 async fn test_bind_multiple_statements_multiple_values() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let values: Vec<i32> = sqlx_oldapi::query_scalar::<_, i32>("select ?; select ?")
+    let values: Vec<i32> = sqlx::query_scalar::<_, i32>("select ?; select ?")
         .bind(5_i32)
         .bind(15_i32)
         .fetch_all(&mut conn)
@@ -115,7 +115,7 @@ async fn test_bind_multiple_statements_multiple_values() -> anyhow::Result<()> {
 async fn test_bind_multiple_statements_same_value() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let values: Vec<i32> = sqlx_oldapi::query_scalar::<_, i32>("select ?1; select ?1")
+    let values: Vec<i32> = sqlx::query_scalar::<_, i32>("select ?1; select ?1")
         .bind(25_i32)
         .fetch_all(&mut conn)
         .await?;
@@ -129,17 +129,17 @@ async fn test_bind_multiple_statements_same_value() -> anyhow::Result<()> {
 
 #[sqlx_macros::test]
 async fn it_can_describe_with_pragma() -> anyhow::Result<()> {
-    use sqlx_oldapi::{Decode, TypeInfo, ValueRef};
+    use sqlx::{Decode, TypeInfo, ValueRef};
 
     let mut conn = new::<Sqlite>().await?;
 
-    let defaults = sqlx_oldapi::query("pragma table_info (tweet)")
+    let defaults = sqlx::query("pragma table_info (tweet)")
         .try_map(|row: SqliteRow| {
             let val = row.try_get_raw("dflt_value")?;
             let ty = val.type_info().clone().into_owned();
 
             let val: Option<i32> =
-                Decode::<Sqlite>::decode(val).map_err(sqlx_oldapi::Error::Decode)?;
+                Decode::<Sqlite>::decode(val).map_err(sqlx::Error::Decode)?;
 
             if val.is_some() {
                 assert_eq!(ty.name(), "TEXT");
@@ -160,7 +160,7 @@ async fn it_can_describe_with_pragma() -> anyhow::Result<()> {
 async fn it_binds_positional_parameters_issue_467() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let row: (i32, i32, i32, i32) = sqlx_oldapi::query_as("select ?1, ?1, ?3, ?2")
+    let row: (i32, i32, i32, i32) = sqlx::query_as("select ?1, ?1, ?3, ?2")
         .bind(5_i32)
         .bind(500_i32)
         .bind(1020_i32)
@@ -181,7 +181,7 @@ async fn it_fetches_in_loop() -> anyhow::Result<()> {
     // there were a few that triggered *sometimes* while building out StatementWorker
     for _ in 0..1000_usize {
         let mut conn = new::<Sqlite>().await?;
-        let v: Vec<(i32,)> = sqlx_oldapi::query_as("SELECT 1")
+        let v: Vec<(i32,)> = sqlx::query_as("SELECT 1")
             .fetch_all(&mut conn)
             .await?;
 
@@ -273,14 +273,14 @@ async fn it_handles_empty_queries() -> anyhow::Result<()> {
 fn it_binds_parameters() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let v: i32 = sqlx_oldapi::query_scalar("SELECT ?")
+    let v: i32 = sqlx::query_scalar("SELECT ?")
         .bind(10_i32)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(v, 10);
 
-    let v: (i32, i32) = sqlx_oldapi::query_as("SELECT ?1, ?")
+    let v: (i32, i32) = sqlx::query_as("SELECT ?1, ?")
         .bind(10_i32)
         .fetch_one(&mut conn)
         .await?;
@@ -295,7 +295,7 @@ fn it_binds_parameters() -> anyhow::Result<()> {
 fn it_binds_dollar_parameters() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let v: (i32, i32) = sqlx_oldapi::query_as("SELECT $1, $2")
+    let v: (i32, i32) = sqlx::query_as("SELECT $1, $2")
         .bind(10_i32)
         .bind(11_i32)
         .fetch_one(&mut conn)
@@ -320,7 +320,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY)
         .await?;
 
     for index in 1..=10_i32 {
-        let done = sqlx_oldapi::query("INSERT INTO users (id) VALUES (?)")
+        let done = sqlx::query("INSERT INTO users (id) VALUES (?)")
             .bind(index * 2)
             .execute(&mut conn)
             .await?;
@@ -328,7 +328,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY)
         assert_eq!(done.rows_affected(), 1);
     }
 
-    let sum: i32 = sqlx_oldapi::query_as("SELECT id FROM users")
+    let sum: i32 = sqlx::query_as("SELECT id FROM users")
         .fetch(&mut conn)
         .try_fold(0_i32, |acc, (x,): (i32,)| async move { Ok(acc + x) })
         .await?;
@@ -354,7 +354,7 @@ INSERT INTO users DEFAULT VALUES;
     assert_eq!(done.rows_affected(), 1);
 
     for index in 2..5_i32 {
-        let (id, other): (i32, i32) = sqlx_oldapi::query_as(
+        let (id, other): (i32, i32) = sqlx::query_as(
             r#"
 INSERT INTO users (other) VALUES (?);
 SELECT id, other FROM users WHERE id = last_insert_rowid();
@@ -422,11 +422,11 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL COLLATE
         )
         .await?;
 
-    sqlx_oldapi::query("INSERT INTO users (name) VALUES (?)")
+    sqlx::query("INSERT INTO users (name) VALUES (?)")
         .bind("a")
         .execute(&mut conn)
         .await?;
-    sqlx_oldapi::query("INSERT INTO users (name) VALUES (?)")
+    sqlx::query("INSERT INTO users (name) VALUES (?)")
         .bind("b")
         .execute(&mut conn)
         .await?;
@@ -458,7 +458,7 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     // `Query` is persistent by default.
     let mut conn = new::<Sqlite>().await?;
     for i in 0..2 {
-        let row = sqlx_oldapi::query("SELECT ? AS val")
+        let row = sqlx::query("SELECT ? AS val")
             .bind(i)
             .fetch_one(&mut conn)
             .await?;
@@ -477,7 +477,7 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     // explicitly.
     let mut conn = new::<Sqlite>().await?;
     for i in 0..2 {
-        let row = sqlx_oldapi::query("SELECT ? AS val")
+        let row = sqlx::query("SELECT ? AS val")
             .bind(i)
             .persistent(false)
             .fetch_one(&mut conn)
@@ -497,7 +497,7 @@ async fn it_can_prepare_then_execute() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
     let mut tx = conn.begin().await?;
 
-    let _ = sqlx_oldapi::query("INSERT INTO tweet ( id, text ) VALUES ( 2, 'Hello, World' )")
+    let _ = sqlx::query("INSERT INTO tweet ( id, text ) VALUES ( 2, 'Hello, World' )")
         .execute(&mut tx)
         .await?;
 
@@ -531,7 +531,7 @@ async fn it_resets_prepared_statement_after_fetch_one() -> anyhow::Result<()> {
         .await?;
     conn.execute("INSERT INTO foobar VALUES (42)").await?;
 
-    let r = sqlx_oldapi::query("SELECT id FROM foobar")
+    let r = sqlx::query("SELECT id FROM foobar")
         .fetch_one(&mut conn)
         .await?;
     let x: i32 = r.try_get("id")?;
@@ -551,7 +551,7 @@ async fn it_resets_prepared_statement_after_fetch_many() -> anyhow::Result<()> {
     conn.execute("INSERT INTO foobar VALUES (42)").await?;
     conn.execute("INSERT INTO foobar VALUES (43)").await?;
 
-    let mut rows = sqlx_oldapi::query("SELECT id FROM foobar").fetch(&mut conn);
+    let mut rows = sqlx::query("SELECT id FROM foobar").fetch(&mut conn);
     let row = rows.try_next().await?.unwrap();
     let x: i32 = row.try_get("id")?;
     assert_eq!(x, 42);
@@ -565,7 +565,7 @@ async fn it_resets_prepared_statement_after_fetch_many() -> anyhow::Result<()> {
 // https://github.com/launchbadge/sqlx/issues/1300
 #[sqlx_macros::test]
 async fn concurrent_resets_dont_segfault() {
-    use sqlx_oldapi::{sqlite::SqliteConnectOptions, ConnectOptions};
+    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
     use std::{str::FromStr, time::Duration};
 
     let mut conn = SqliteConnectOptions::from_str(":memory:")
@@ -574,14 +574,14 @@ async fn concurrent_resets_dont_segfault() {
         .await
         .unwrap();
 
-    sqlx_oldapi::query("CREATE TABLE stuff (name INTEGER, value INTEGER)")
+    sqlx::query("CREATE TABLE stuff (name INTEGER, value INTEGER)")
         .execute(&mut conn)
         .await
         .unwrap();
 
     sqlx_rt::spawn(async move {
         for i in 0..1000 {
-            sqlx_oldapi::query("INSERT INTO stuff (name, value) VALUES (?, ?)")
+            sqlx::query("INSERT INTO stuff (name, value) VALUES (?, ?)")
                 .bind(i)
                 .bind(0)
                 .execute(&mut conn)
@@ -600,7 +600,7 @@ async fn concurrent_resets_dont_segfault() {
 async fn row_dropped_after_connection_doesnt_panic() {
     let mut conn = SqliteConnection::connect(":memory:").await.unwrap();
 
-    let books = sqlx_oldapi::query("SELECT 'hello' AS title")
+    let books = sqlx::query("SELECT 'hello' AS title")
         .fetch_all(&mut conn)
         .await
         .unwrap();
@@ -628,7 +628,7 @@ async fn issue_1467() -> anyhow::Result<()> {
         .connect()
         .await?;
 
-    sqlx_oldapi::query(
+    sqlx::query(
         r#"
     CREATE TABLE kv (k PRIMARY KEY, v);
     CREATE INDEX idx_kv ON kv (v);
@@ -659,18 +659,18 @@ async fn issue_1467() -> anyhow::Result<()> {
         let value = rng.gen_range(0..1_000);
         let mut tx = conn.begin().await?;
 
-        let exists = sqlx_oldapi::query("SELECT 1 FROM kv WHERE k = ?")
+        let exists = sqlx::query("SELECT 1 FROM kv WHERE k = ?")
             .bind(key)
             .fetch_optional(&mut tx)
             .await?;
         if exists.is_some() {
-            sqlx_oldapi::query("UPDATE kv SET v = ? WHERE k = ?")
+            sqlx::query("UPDATE kv SET v = ? WHERE k = ?")
                 .bind(value)
                 .bind(key)
                 .execute(&mut tx)
                 .await?;
         } else {
-            sqlx_oldapi::query("INSERT INTO kv(k, v) VALUES (?, ?)")
+            sqlx::query("INSERT INTO kv(k, v) VALUES (?, ?)")
                 .bind(key)
                 .bind(value)
                 .execute(&mut tx)
@@ -689,7 +689,7 @@ async fn concurrent_read_and_write() {
         .await
         .unwrap();
 
-    sqlx_oldapi::query("CREATE TABLE kv (k PRIMARY KEY, v)")
+    sqlx::query("CREATE TABLE kv (k PRIMARY KEY, v)")
         .execute(&pool)
         .await
         .unwrap();
@@ -701,7 +701,7 @@ async fn concurrent_read_and_write() {
 
         async move {
             for i in 0u32..n {
-                sqlx_oldapi::query("SELECT v FROM kv")
+                sqlx::query("SELECT v FROM kv")
                     .bind(i)
                     .fetch_all(&mut conn)
                     .await
@@ -715,7 +715,7 @@ async fn concurrent_read_and_write() {
 
         async move {
             for i in 0u32..n {
-                sqlx_oldapi::query("INSERT INTO kv (k, v) VALUES (?, ?)")
+                sqlx::query("INSERT INTO kv (k, v) VALUES (?, ?)")
                     .bind(i)
                     .bind(i * i)
                     .execute(&mut conn)

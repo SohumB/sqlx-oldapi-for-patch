@@ -1,8 +1,8 @@
-use sqlx_oldapi::error::DatabaseError;
-use sqlx_oldapi::sqlite::{SqliteConnectOptions, SqliteError};
-use sqlx_oldapi::ConnectOptions;
-use sqlx_oldapi::TypeInfo;
-use sqlx_oldapi::{sqlite::Sqlite, Column, Executor};
+use sqlx::error::DatabaseError;
+use sqlx::sqlite::{SqliteConnectOptions, SqliteError};
+use sqlx::ConnectOptions;
+use sqlx::TypeInfo;
+use sqlx::{sqlite::Sqlite, Column, Executor};
 use sqlx_test::new;
 use std::env;
 
@@ -264,7 +264,7 @@ async fn it_describes_left_join() -> anyhow::Result<()> {
 #[sqlx_macros::test]
 async fn it_describes_literal_subquery() -> anyhow::Result<()> {
     async fn assert_literal_described(
-        conn: &mut sqlx_oldapi::SqliteConnection,
+        conn: &mut sqlx::SqliteConnection,
         query: &str,
     ) -> anyhow::Result<()> {
         let info = conn.describe(query).await?;
@@ -303,7 +303,7 @@ async fn it_describes_literal_subquery() -> anyhow::Result<()> {
 #[sqlx_macros::test]
 async fn it_describes_table_subquery() -> anyhow::Result<()> {
     async fn assert_tweet_described(
-        conn: &mut sqlx_oldapi::SqliteConnection,
+        conn: &mut sqlx::SqliteConnection,
         query: &str,
     ) -> anyhow::Result<()> {
         let info = conn.describe(query).await?;
@@ -352,7 +352,7 @@ async fn it_describes_table_subquery() -> anyhow::Result<()> {
 #[sqlx_macros::test]
 async fn it_describes_union() -> anyhow::Result<()> {
     async fn assert_union_described(
-        conn: &mut sqlx_oldapi::SqliteConnection,
+        conn: &mut sqlx::SqliteConnection,
         query: &str,
     ) -> anyhow::Result<()> {
         let info = conn.describe(query).await?;

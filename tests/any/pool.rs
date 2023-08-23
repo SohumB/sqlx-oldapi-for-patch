@@ -1,5 +1,5 @@
-use sqlx_oldapi::any::{AnyConnectOptions, AnyPoolOptions};
-use sqlx_oldapi::{Executor, Row};
+use sqlx::any::{AnyConnectOptions, AnyPoolOptions};
+use sqlx::{Executor, Row};
 use std::sync::atomic::AtomicI32;
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
@@ -50,17 +50,17 @@ async fn pool_should_be_returned_failed_transactions() -> anyhow::Result<()> {
     let query = "blah blah";
 
     let mut tx = pool.begin().await?;
-    let res = sqlx_oldapi::query(query).execute(&mut tx).await;
+    let res = sqlx::query(query).execute(&mut tx).await;
     assert!(res.is_err());
     drop(tx);
 
     let mut tx = pool.begin().await?;
-    let res = sqlx_oldapi::query(query).execute(&mut tx).await;
+    let res = sqlx::query(query).execute(&mut tx).await;
     assert!(res.is_err());
     drop(tx);
 
     let mut tx = pool.begin().await?;
-    let res = sqlx_oldapi::query(query).execute(&mut tx).await;
+    let res = sqlx::query(query).execute(&mut tx).await;
     assert!(res.is_err());
     drop(tx);
 
@@ -83,10 +83,10 @@ async fn big_pool() -> anyhow::Result<()> {
     for _ in 0..1000 {
         let p = pool.clone();
         handles.push(tokio::spawn(async move {
-            let row = sqlx_oldapi::query("SELECT 1").fetch_one(&*p).await?;
+            let row = sqlx::query("SELECT 1").fetch_one(&*p).await?;
             let val: i32 = row.get(0);
             assert_eq!(val, 1);
-            Ok::<_, sqlx_oldapi::Error>(())
+            Ok::<_, sqlx::Error>(())
         }));
     }
     for h in handles {
@@ -97,7 +97,7 @@ async fn big_pool() -> anyhow::Result<()> {
 
 #[sqlx_macros::test]
 async fn test_pool_callbacks() -> anyhow::Result<()> {
-    #[derive(sqlx_oldapi::FromRow, Debug, PartialEq, Eq)]
+    #[derive(sqlx::FromRow, Debug, PartialEq, Eq)]
     struct ConnStats {
         id: i32,
         before_acquire_calls: i32,
@@ -109,7 +109,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
     let conn_options: AnyConnectOptions = std::env::var("DATABASE_URL")?.parse()?;
 
     #[cfg(feature = "mssql")]
-    if conn_options.kind() == sqlx_oldapi::any::AnyKind::Mssql {
+    if conn_options.kind() == sqlx::any::AnyKind::Mssql {
         // MSSQL doesn't support `CREATE TEMPORARY TABLE`,
         // because why follow conventions when you can subvert them?
         // Instead, you prepend `#` to the table name for a session-local temporary table
@@ -157,7 +157,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
 
             Box::pin(async move {
                 // MySQL and MariaDB don't support UPDATE ... RETURNING
-                sqlx_oldapi::query(
+                sqlx::query(
                     r#"
                         UPDATE conn_stats 
                         SET before_acquire_calls = before_acquire_calls + 1
@@ -166,7 +166,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
                 .execute(&mut *conn)
                 .await?;
 
-                let stats: ConnStats = sqlx_oldapi::query_as("SELECT * FROM conn_stats")
+                let stats: ConnStats = sqlx::query_as("SELECT * FROM conn_stats")
                     .fetch_one(conn)
                     .await?;
 
@@ -181,7 +181,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
             assert_eq!(meta.idle_for, Duration::ZERO);
 
             Box::pin(async move {
-                sqlx_oldapi::query(
+                sqlx::query(
                     r#"
                         UPDATE conn_stats 
                         SET after_release_calls = after_release_calls + 1
@@ -190,7 +190,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
                 .execute(&mut *conn)
                 .await?;
 
-                let stats: ConnStats = sqlx_oldapi::query_as("SELECT * FROM conn_stats")
+                let stats: ConnStats = sqlx::query_as("SELECT * FROM conn_stats")
                     .fetch_one(conn)
                     .await?;
 
@@ -220,7 +220,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
     ];
 
     for (id, before_acquire_calls, after_release_calls) in pattern {
-        let conn_stats: ConnStats = sqlx_oldapi::query_as("SELECT * FROM conn_stats")
+        let conn_stats: ConnStats = sqlx::query_as("SELECT * FROM conn_stats")
             .fetch_one(&pool)
             .await?;
 

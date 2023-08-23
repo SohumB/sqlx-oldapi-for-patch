@@ -1,14 +1,14 @@
 // The no-arg variant is covered by other tests already.
 
-use sqlx_oldapi::PgPool;
+use sqlx::PgPool;
 
-const MIGRATOR: sqlx_oldapi::migrate::Migrator = sqlx_oldapi::migrate!("tests/postgres/migrations");
+const MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("tests/postgres/migrations");
 
-#[sqlx_oldapi::test]
-async fn it_gets_a_pool(pool: PgPool) -> sqlx_oldapi::Result<()> {
+#[sqlx::test]
+async fn it_gets_a_pool(pool: PgPool) -> sqlx::Result<()> {
     let mut conn = pool.acquire().await?;
 
-    let db_name: String = sqlx_oldapi::query_scalar("SELECT current_database()")
+    let db_name: String = sqlx::query_scalar("SELECT current_database()")
         .fetch_one(&mut conn)
         .await?;
 
@@ -18,22 +18,22 @@ async fn it_gets_a_pool(pool: PgPool) -> sqlx_oldapi::Result<()> {
 }
 
 // This should apply migrations and then `fixtures/users.sql`
-#[sqlx_oldapi::test(migrations = "tests/postgres/migrations", fixtures("users"))]
-async fn it_gets_users(pool: PgPool) -> sqlx_oldapi::Result<()> {
+#[sqlx::test(migrations = "tests/postgres/migrations", fixtures("users"))]
+async fn it_gets_users(pool: PgPool) -> sqlx::Result<()> {
     let usernames: Vec<String> =
-        sqlx_oldapi::query_scalar(r#"SELECT username FROM "user" ORDER BY username"#)
+        sqlx::query_scalar(r#"SELECT username FROM "user" ORDER BY username"#)
             .fetch_all(&pool)
             .await?;
 
     assert_eq!(usernames, ["alice", "bob"]);
 
-    let post_exists: bool = sqlx_oldapi::query_scalar("SELECT exists(SELECT 1 FROM post)")
+    let post_exists: bool = sqlx::query_scalar("SELECT exists(SELECT 1 FROM post)")
         .fetch_one(&pool)
         .await?;
 
     assert!(!post_exists);
 
-    let comment_exists: bool = sqlx_oldapi::query_scalar("SELECT exists(SELECT 1 FROM comment)")
+    let comment_exists: bool = sqlx::query_scalar("SELECT exists(SELECT 1 FROM comment)")
         .fetch_one(&pool)
         .await?;
 
@@ -42,10 +42,10 @@ async fn it_gets_users(pool: PgPool) -> sqlx_oldapi::Result<()> {
     Ok(())
 }
 
-#[sqlx_oldapi::test(migrations = "tests/postgres/migrations", fixtures("users", "posts"))]
-async fn it_gets_posts(pool: PgPool) -> sqlx_oldapi::Result<()> {
+#[sqlx::test(migrations = "tests/postgres/migrations", fixtures("users", "posts"))]
+async fn it_gets_posts(pool: PgPool) -> sqlx::Result<()> {
     let post_contents: Vec<String> =
-        sqlx_oldapi::query_scalar("SELECT content FROM post ORDER BY created_at")
+        sqlx::query_scalar("SELECT content FROM post ORDER BY created_at")
             .fetch_all(&pool)
             .await?;
 
@@ -57,7 +57,7 @@ async fn it_gets_posts(pool: PgPool) -> sqlx_oldapi::Result<()> {
         ]
     );
 
-    let comment_exists: bool = sqlx_oldapi::query_scalar("SELECT exists(SELECT 1 FROM comment)")
+    let comment_exists: bool = sqlx::query_scalar("SELECT exists(SELECT 1 FROM comment)")
         .fetch_one(&pool)
         .await?;
 
@@ -67,9 +67,9 @@ async fn it_gets_posts(pool: PgPool) -> sqlx_oldapi::Result<()> {
 }
 
 // Try `migrator`
-#[sqlx_oldapi::test(migrator = "MIGRATOR", fixtures("users", "posts", "comments"))]
-async fn it_gets_comments(pool: PgPool) -> sqlx_oldapi::Result<()> {
-    let post_1_comments: Vec<String> = sqlx_oldapi::query_scalar(
+#[sqlx::test(migrator = "MIGRATOR", fixtures("users", "posts", "comments"))]
+async fn it_gets_comments(pool: PgPool) -> sqlx::Result<()> {
+    let post_1_comments: Vec<String> = sqlx::query_scalar(
         "SELECT content FROM comment WHERE post_id = $1::uuid ORDER BY created_at",
     )
     .bind(&"252c1d98-a9b0-4f18-8298-e59058bdfe16")
@@ -81,7 +81,7 @@ async fn it_gets_comments(pool: PgPool) -> sqlx_oldapi::Result<()> {
         ["lol bet ur still bad, 1v1 me", "you're on!"]
     );
 
-    let post_2_comments: Vec<String> = sqlx_oldapi::query_scalar(
+    let post_2_comments: Vec<String> = sqlx::query_scalar(
         "SELECT content FROM comment WHERE post_id = $1::uuid ORDER BY created_at",
     )
     .bind(&"844265f7-2472-4689-9a2e-b21f40dbf401")

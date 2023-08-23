@@ -19,8 +19,8 @@ members = [
 ]
 
 [package]
-name = "sqlx-oldapi"
-version = "0.6.11"
+name = "sqlx"
+version = "0.6.3"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/lovasoa/sqlx"
@@ -125,8 +125,8 @@ bstr = ["sqlx-core/bstr"]
 git2 = ["sqlx-core/git2"]
 
 [dependencies]
-sqlx-core = { package = "sqlx-core-oldapi",  version = "0.6.11", path = "sqlx-core", default-features = false }
-sqlx-macros = { package = "sqlx-macros-oldapi", version = "0.6.11", path = "sqlx-macros", default-features = false, optional = true }
+sqlx-core = { package = "sqlx-core",  version = "0.6.3", path = "sqlx-core", default-features = false }
+sqlx-macros = { package = "sqlx-macros", version = "0.6.3", path = "sqlx-macros", default-features = false, optional = true }
 
 [dev-dependencies]
 anyhow = "1.0.52"
@@ -137,7 +137,7 @@ async-std = { version = "1.10.0", features = ["attributes"] }
 tokio = { version = "1.15.0", features = ["full"] }
 dotenvy = "0.15.0"
 trybuild = "1.0.53"
-sqlx-rt = { path = "./sqlx-rt", package = "sqlx-rt-oldapi" }
+sqlx-rt = { path = "./sqlx-rt", package = "sqlx-rt" }
 sqlx-test = { path = "./sqlx-test" }
 paste = "1.0.6"
 serde = { version = "1.0.132", features = ["derive"] }
